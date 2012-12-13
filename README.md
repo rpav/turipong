@@ -219,7 +219,7 @@ Here are some basic operations framed in Turipong:
   Fortunately, Turipong implements message passing via you precisely
   timing the bounce of the ball.
 
-* [Loops](https://github.com/rpav/turipong/blob/master/examples/swap.tp):
+* [Loops](https://github.com/rpav/turipong/blob/master/examples/loop.tp):
   Make the ball go around and count down.  This example could
   obviously use some optimization... tighten up the loop by actually
   shrinking it down!
