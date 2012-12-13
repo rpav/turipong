@@ -2,7 +2,7 @@
   (:use #:cl #:alexandria)
   (:export #:run #:run-iteration #:run-program-file #:runningp
            #:program-width #:program-height #:program-char
-           #:print-program #:read-program
+           #:print-program #:read-program #:dump-program
            #:read-program-file))
 
 (defpackage :turipong.visual

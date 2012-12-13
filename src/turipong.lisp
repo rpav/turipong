@@ -1,7 +1,15 @@
 (in-package :turipong)
 
 (defstruct (program (:constructor %make-program))
-  code state)
+  code state (input "") (input-pos 0))
+
+(defun dump-program (program)
+  (format t "PROGRAM:~%~2,0TINPUT = ~A~%~2,0TINPUT-POS = ~A~%~2,0TSTATES:~%"
+          (program-input program) (program-input-pos program))
+  (loop for ball across (program-state program) do
+        (format t "~4,0T~A = ~S~%"
+                (ball-pid ball)
+                (ball-val ball))))
 
 (defun program-width (program)
   (array-dimension (program-code program) 1))
@@ -14,6 +22,13 @@
     (etypecase val
       (character val)
       (ball #\@))))
+
+(defun program-read-input (program)
+  (if (< (program-input-pos program) (length (program-input program)))
+      (prog1 (aref (program-input program)
+                   (program-input-pos program))
+        (incf (program-input-pos program)))
+      ""))
 
 (defstruct ball
   pid row col direction
@@ -68,10 +83,11 @@
 (defun ball-top-false-p (ball)
   (ball-false-p (ball-top ball)))
 
-(defun make-program (&key code)
+(defun make-program (&key code (input ""))
   (let ((program (%make-program :code code
                                 :state (make-array 0 :adjustable t
-                                                     :fill-pointer t))))
+                                                     :fill-pointer t)
+                                :input input)))
     (initialize-state program)
     program))
 
@@ -115,23 +131,24 @@
           do (replace displaced line))
     code))
 
-(defun read-program (stream)
+(defun read-program (stream &optional (input ""))
   (loop as line = (read-line stream nil)
         while line
         collecting line into lines
         finally
-           (return (make-program :code (make-code lines)))))
+           (return (make-program :code (make-code lines)
+                                 :input input))))
 
-(defun read-program-file (file)
+(defun read-program-file (file &optional (input ""))
   (with-open-file (stream file)
-    (read-program stream)))
+    (read-program stream input)))
 
 (defun run (program)
   (loop while (runningp program) do
     (run-iteration program)))
 
-(defun run-program-file (file)
-  (let ((program (read-program-file file)))
+(defun run-program-file (file &optional (input ""))
+  (let ((program (read-program-file file input)))
     (run program)))
 
 (defun runningp (program)
@@ -174,20 +191,36 @@ in parallel.  This function could in theory be run in parallel."
           (col (+ (ball-col ball) (if horizontalp (aref vector 1) 0))))
       (unless (out-of-bounds-p program row col)
         (let ((val (aref (program-code program) row col)))
-          (when (ball-interact ball val)
+          (when (ball-interact program ball val)
             (when verticalp (setf (aref vector 0) (- (aref vector 0))))
             (when horizontalp (setf (aref vector 1) (- (aref vector 1))))
             t))))))
 
-(defun ball-interact (ball val)
+(defun ball-interact (program ball val)
   (cond
     ((eq val #\Space) nil)
     ((and (characterp val)
           (alphanumericp val)) (ball-append val ball) t)
     ((eq #\_ val) (ball-append #\Space ball) t)
-    ((eq #\, val) (ball-push-new ball) t)
+    ((eq #\, val)
+     (when (not (equalp "" (ball-top ball)))
+       (ball-push-new ball))
+     t)
     ((eq #\` val) (ball-pop ball) t)
-    ((eq #\> val) (princ (ball-pop ball)) t)
+    ((eq #\: val) (ball-push (ball-top ball) ball) t)
+    ((eq #\; val)
+     (let ((val1 (ball-pop ball))
+           (val2 (ball-pop ball)))
+       (ball-push val1 ball)
+       (ball-push val2 ball))
+     t)
+    ((eq #\> val)
+     (let ((val (ball-pop ball)))
+      (if (string= "" val)
+          (princ #\Newline)
+          (princ val)))
+     t)
+    ((eq #\< val) (ball-append (program-read-input program) ball) t)
     ((eq #\? val) (not (ball-top-false-p ball)))
     ((eq #\! val)
      (if (ball-top-false-p ball)

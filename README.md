@@ -15,13 +15,18 @@ file.  Operations are as follows:
 * `" "` (blank, space): The ball passes through.
 * `[a-zA-Z0-9_]`: Append an alphanumeric character to the top of the
   stack, and bounce. "_" appends a space character.
-* `,`: Push a new blank onto the stack.  Think of this as a "stack
-  separator".  Bounce.
+* `,`: Push a new blank onto the stack, if there is not already a
+  _blank_ value. (Can separate other non-blank false values.)  Think
+  of this as a "stack separator".  Bounce.
 * ``"`"`` (backtick): Pop a value from the stack.  It gets lost.
   Bounce.
-
-* `>`: Output the top of the stack to stdout, and bounce.  The current
-  state is printed to stdout.
+* ``:``: Duplicate the value on the stack.  Bounce.
+* ``;``: Swap the top two values on the stack.  Bounce.
+* `>`: Output the top of the stack to stdout, and bounce.  If the top
+  of the stack is a _blank_ (the blank string, via `,`, not a space),
+  a newline is printed.
+* `<`: Input one char, appending to the top value on the stack, as
+  per alphanumerics.  If there is no input, nothing is appended.  Bounce.
 * `?`: Test.  If the top of the stack is a blank, space, or zero, the
   ball will pass through as if the "?" is a " ".  Otherwise, bounce.
 * `!`: Not.  If the state of the ball is other than false, the state
@@ -37,7 +42,7 @@ file.  Operations are as follows:
   45° angle in the southeast direction.  When a ball leaves the field,
   its state is removed and it is considered to have exited.  When all
   balls have exited, the program finishes.
-* Other: Bounce.  The state is unchanged.
+* Other: Bounce.  The stack is unchanged.
 
 # Usage
 
@@ -181,6 +186,8 @@ case, no effects happened on the round both balls tried to occupy the
 
 # Examples
 
+## hello world
+
 Doing some basic things is fairly simple:
 
 ```
@@ -193,3 +200,34 @@ Doing some basic things is fairly simple:
 
 This prints "hello world" and exits.  Of course, walls need not be
 more than one character, but it may make things easier.
+
+## Basic Operations
+
+Here are some basic operations framed in Turipong:
+
+* [Test](https://github.com/rpav/turipong/blob/master/examples/add.tp):
+  Basic test for equality; in this case we push 1 and 2 on the stack,
+  subtract, and test.  If they are equal, the ball will pass through
+  the `???` and print `y`, otherwise it will bounce and print `n`.
+
+* [I/O](https://github.com/rpav/turipong/blob/master/examples/input.tp):
+  Nothing special, just print three letters, input three characters,
+  printing them.  Also demonstrates newlines.
+
+* [Message Passing](https://github.com/rpav/turipong/blob/master/examples/swap.tp):
+  Parallelism isn't useful if processes can't communicate.
+  Fortunately, Turipong implements message passing via you precisely
+  timing the bounce of the ball.
+
+* [Loops](https://github.com/rpav/turipong/blob/master/examples/swap.tp):
+  Make the ball go around and count down.  This example could
+  obviously use some optimization... tighten up the loop by actually
+  shrinking it down!
+
+## Beyond
+
+Further examples are left to the reader as an exercise, probably in
+frustration.  Turipong has just enough operations to make things seem
+easy, and just enough practical limitations to make them all painfully
+difficult.  You will likely need to make heavy use of the visualizer,
+Emacs' picture-mode, and trial and error.
