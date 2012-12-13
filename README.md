@@ -8,6 +8,25 @@ Befunge is too straightforward and useful.  Enter Turipong:
 * Flow control is literally redirecting the ball
 * Parallelism is multiple balls
 
+```
+            >
+    @       >
+       1n   >
+       1n    
+   ,   1n   `
+   ,   -    `
+   ,          
+              
+     222?????
+            ` 
+            `
+        y   `
+        y     
+        y   > 
+            >
+            >
+```
+
 Walls are placed about a field.  To keep things simple for version
 1.0, there aren't player-controlled paddles.  Input is via a text
 file.  Operations are as follows:
